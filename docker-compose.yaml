@@ -40,6 +40,20 @@ services:
       - host.docker.internal:host-gateway
     restart: unless-stopped
 
+  pipelines:
+    container_name: pipelines
+    image: ghcr.io/open-webui/pipelines:main
+    build:
+      context: ./pipelines
+      dockerfile: Dockerfile  # Include Dockerfile for building with necessary dependencies
+    volumes:
+      - ./pipelines:/app/pipelines  # Bind your local pipelines folder to the container
+    ports:
+      - "9099:9099"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: always
+
 volumes:
   ollama: {}
   open-webui: {}
