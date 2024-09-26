@@ -50,6 +50,12 @@ services:
       - ./pipelines:/app/pipelines  # Bind your local pipelines folder to the container
     ports:
       - "9099:9099"
+    environment:
+      - PIPELINES_REQUIREMENTS_PATH=/app/pipelines/requirements.txt
+      - LLAMAINDEX_MODEL_NAME=llama3
+      - EMBED_MODEL=nomic-embed-text
+      - SOURCE_DIRECTORY=/home/xpert/Documents/llmRAG
+    command: uvicorn pipelines.utils.main:app --host 0.0.0.0 --port 9099
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: always
