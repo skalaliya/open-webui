@@ -40,25 +40,17 @@ services:
       - host.docker.internal:host-gateway
     restart: unless-stopped
 
-  pipelines:
-    container_name: pipelines
-    image: ghcr.io/open-webui/pipelines:main
-    build:
-      context: ./pipelines
-      dockerfile: Dockerfile  # Include Dockerfile for building with necessary dependencies
-    volumes:
-      - ./pipelines:/app/pipelines  # Bind your local pipelines folder to the container
-    ports:
-      - "9099:9099"
+  grafana:
+    image: grafana/grafana-oss  # open source
+    container_name: grafana
+    restart: unless-stopped
     environment:
-      - PIPELINES_REQUIREMENTS_PATH=/app/pipelines/requirements.txt
-      - LLAMAINDEX_MODEL_NAME=llama3
-      - EMBED_MODEL=nomic-embed-text
-      - SOURCE_DIRECTORY=/home/xpert/Documents/llmRAG
-    command: uvicorn pipelines.utils.main:app --host 0.0.0.0 --port 9099
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    restart: always
+    - GF_SERVER_ROOT_URL=http://my.grafana.server/
+    - GF_INSTALL_PLUGINS=grafana-clock-panel
+    ports:
+    - '4000:3000'  # Change this line to map port 4000 on the host to port 3000 in the container
+    volumes:
+     - '/home/xpert/Desktop/open-webui/grafana_data:/var/lib/grafana'  # Bind mount
 
 volumes:
   ollama: {}
