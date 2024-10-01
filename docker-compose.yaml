@@ -52,6 +52,25 @@ services:
     volumes:
      - '/home/xpert/Desktop/open-webui/grafana_data:/var/lib/grafana'  # Bind mount
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - '9090:9090'  # Expose Prometheus on port 9090
+    volumes:
+      - /home/xpert/Desktop/open-webui/prometheus_data:/prometheus  # Persistent data storage
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - ollama
+    networks:
+      - default
+
 volumes:
   ollama: {}
   open-webui: {}
+
+networks:
+  default:
+    driver: bridge
