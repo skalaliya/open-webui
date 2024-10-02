@@ -18,6 +18,8 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    networks:
+    - open-webui_default
 
   open-webui:
     build:
@@ -39,6 +41,18 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+    networks:
+    - open-webui_default
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    container_name: pipelines
+    ports:
+      - "9099:9099"
+    restart: unless-stopped
+    networks:
+      - open-webui_default
+
 
   grafana:
     image: grafana/grafana-oss  # open source
@@ -51,6 +65,8 @@ services:
     - '4000:3000'  # Change this line to map port 4000 on the host to port 3000 in the container
     volumes:
      - '/home/xpert/Desktop/open-webui/grafana_data:/var/lib/grafana'  # Bind mount
+    networks:
+    - open-webui_default
 
   prometheus:
     image: prom/prometheus:latest
@@ -59,18 +75,57 @@ services:
     ports:
       - '9090:9090'  # Expose Prometheus on port 9090
     volumes:
-      - /home/xpert/Desktop/open-webui/prometheus_data:/prometheus  # Persistent data storage
+      - /home/xpert/Desktop/open-webui/prometheus.yml:/etc/prometheus/prometheus.yml  # Map prometheus.yml config file
+      - /home/xpert/Desktop/open-webui/prometheus_data:/prometheus/data  # Ensure data directory is mapped correctly
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - ollama
     networks:
-      - default
+    - open-webui_default
+
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - '--path.rootfs=/host'  # Needed to expose host-level metrics
+    pid: host  # Allows access to host's PID namespace
+    cap_add:
+      - SYS_TIME  # Add SYS_TIME capability for accessing time-related syscalls
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'  # Mount host root filesystem as read-only for access to system metrics
+    networks:
+      - open-webui_default
+
+  dcgm-exporter:
+    image: nvidia/dcgm-exporter:latest
+    container_name: dcgm-exporter
+    runtime: nvidia  # Enable NVIDIA runtime for GPU access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    cap_add:
+      - SYS_ADMIN  # Add SYS_ADMIN capability
+    ports:
+      - "9400:9400"  # Expose DCGM Exporter on port 9400
+    restart: unless-stopped
+    networks:
+      - open-webui_default
+
+
+networks:
+  open-webui_default:
+    driver: bridge
 
 volumes:
   ollama: {}
   open-webui: {}
 
-networks:
-  default:
-    driver: bridge

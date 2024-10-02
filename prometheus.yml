@@ -1,15 +1,20 @@
 global:
-  scrape_interval: 15s  # How often to scrape metrics
+  scrape_interval: 15s  # How often to scrape targets by default
+  scrape_timeout: 10s
+  evaluation_interval: 15s
 
 scrape_configs:
   - job_name: 'prometheus'
+    scrape_interval: 15s
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['localhost:9090']  # Prometheus itself
 
-  - job_name: 'node-exporter'
+  - job_name: 'node'
+    scrape_interval: 5s
     static_configs:
-      - targets: ['localhost:9100']  # For node-exporter metrics
+      - targets: ['10.105.35.105:9100']  # Node Exporter target
 
   - job_name: 'gpu-metrics'
+    scrape_interval: 5s
     static_configs:
-      - targets: ['localhost:9400']  # NVIDIA DCGM Exporter
+      - targets: ['10.105.35.105:9400']  # DCGM Exporter target
