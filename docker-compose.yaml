@@ -90,10 +90,11 @@ services:
     container_name: node-exporter
     command:
       - '--path.rootfs=/host'  # Needed to expose host-level metrics
-    pid: host  # Allows access to host's PID namespace
     cap_add:
       - SYS_TIME  # Add SYS_TIME capability for accessing time-related syscalls
     restart: unless-stopped
+    ports:
+      - "9100:9100"
     volumes:
       - '/:/host:ro,rslave'  # Mount host root filesystem as read-only for access to system metrics
     networks:
