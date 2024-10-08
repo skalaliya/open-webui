@@ -121,6 +121,29 @@ services:
     networks:
       - open-webui_default
 
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    ports:
+      - "8081:80"  # Changed to 8081 to avoid conflicts with 8080
+    restart: unless-stopped
+    networks:
+      - open-webui_default
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8090:8090"  # Expose Jenkins on port 8082 to avoid conflicts
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    restart: unless-stopped
+    networks:
+      - open-webui_default
+    environment:
+      - JENKINS_OPTS=--httpPort=8090  # Ensure Jenkins listens on port 8090 within container
+
+
 
 networks:
   open-webui_default:
@@ -129,4 +152,5 @@ networks:
 volumes:
   ollama: {}
   open-webui: {}
+  jenkins_home: {}
 
